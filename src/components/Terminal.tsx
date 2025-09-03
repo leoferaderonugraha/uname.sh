@@ -197,7 +197,7 @@ const Terminal = () => {
             spellCheck={false}
             autoComplete="off"
           />
-          <span className="terminal-cursor ml-1"></span>
+          {/* <span className="terminal-cursor ml-1"></span> */}
         </form>
       </div>
     </div>
