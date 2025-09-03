@@ -52,6 +52,13 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
+				terminal: {
+					bg: 'hsl(var(--terminal-bg))',
+					text: 'hsl(var(--terminal-text))',
+					prompt: 'hsl(var(--terminal-prompt))',
+					cursor: 'hsl(var(--terminal-cursor))',
+					selection: 'hsl(var(--terminal-selection))'
+				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
