@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import * as commands from '@/lib/commands';
 
 interface TerminalLine {
   id: number;
-  type: 'input' | 'output' | 'error';
+  type: 'input' | 'output' | 'output-html' | 'error';
   content: string;
   timestamp: Date;
 }
@@ -56,41 +57,36 @@ const Terminal = () => {
   const executeCommand = useCallback((command: string) => {
     const cmd = command.trim().toLowerCase();
     let output = '';
-    let type: 'output' | 'error' = 'output';
+    let type: 'output' | 'output-html' | 'error' = 'output';
 
     switch (cmd) {
       case '':
         return; // Don't add empty commands
       case 'help':
-        output = `Available commands:
-  help     - Show this help message
-  clear    - Clear the terminal
-  whoami   - Display current user
-  date     - Show current date and time
-  echo     - Echo back your message (usage: echo [message])
-  history  - Show command history
-  welcome  - Show welcome message`;
+        output = commands.help();
         break;
       case 'clear':
         setLines([]);
         return;
       case 'whoami':
-        output = 'guest@terminal-emulator';
+        output = commands.whoami();
         break;
       case 'date':
-        output = new Date().toString();
+        output = commands.date();
         break;
       case 'history':
-        output = commandHistory.length > 0 
-          ? commandHistory.map((cmd, idx) => `${idx + 1}  ${cmd}`).join('\n')
-          : 'No commands in history.';
+        output = commands.history(commandHistory);
         break;
-      case 'welcome':
-        output = 'Welcome to Terminal Emulator v1.0.0\nA simple terminal interface built with React and TypeScript.';
+      case 'contacts':
+        output = commands.contacts();
+        type = 'output-html';
         break;
       default:
-        if (cmd.startsWith('echo ')) {
-          output = command.slice(5); // Remove 'echo ' prefix
+        if (cmd.startsWith('uname')) {
+          const options = cmd.split(' ');
+          const [unameOutput, unameType] = commands.uname(options[1]);
+          output = unameOutput;
+          type = unameType as 'output' | 'error';
         } else {
           output = `Command not found: ${command}. Type "help" for available commands.`;
           type = 'error';
@@ -148,7 +144,16 @@ const Terminal = () => {
     } else if (e.key === 'Tab') {
       e.preventDefault();
       // Simple auto-completion for common commands
-      const commands = ['help', 'clear', 'whoami', 'date', 'echo', 'history', 'welcome'];
+      const commands = [
+        'help',
+        'clear',
+        'whoami',
+        'date',
+        'echo',
+        'history',
+        'uname',
+        'contacts'
+      ];
       const matches = commands.filter(cmd => cmd.startsWith(currentInput.toLowerCase()));
       if (matches.length === 1) {
         setCurrentInput(matches[0]);
@@ -159,6 +164,12 @@ const Terminal = () => {
   const formatContent = (content: string) => {
     return content.split('\n').map((line, index) => (
       <div key={index}>{line}</div>
+    ));
+  };
+
+  const unsafeFormatContent = (content: string) => {
+    return content.split('\n').map((line, index) => (
+      <div key={index} dangerouslySetInnerHTML={{__html: line}}></div>
     ));
   };
 
@@ -180,7 +191,7 @@ const Terminal = () => {
             } whitespace-pre-wrap`}
             style={{ animation: 'fadeIn 0.3s ease-in' }}
           >
-            {formatContent(line.content)}
+            {line.type === 'output-html' ? unsafeFormatContent(line.content) : formatContent(line.content)}
           </div>
         ))}
         
